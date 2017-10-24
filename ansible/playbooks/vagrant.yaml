@@ -1,0 +1,34 @@
+---
+# file   : ansible/playbooks/vagrant.yml
+# purpose: manage vagrant servers
+#
+# author : harald van der laan
+# date   : 2017-10-24
+# version: v1.0.0
+
+- hosts: vagrant
+  become: true
+
+  tasks:
+  - name: create local facts directory
+    file:
+      path: /etc/ansible/facts.d
+      state: directory
+    register: factsdir
+
+  - name: verify local factsfile
+    stat:
+      path: /etc/ansible/facts.d/managed.fact
+    register: factsfile
+ 
+  - name: create local factsfile
+    file:
+      path: /etc/ansible/facts.d/managed.fact
+      state: touch
+    when: factsdir.changed or factsfile.stat.exists == False
+
+- hosts: vagrant
+  become: true
+
+  roles:
+  - { role: vagrantbootstrap, when: ansible_local.managed.ansible is not defined }

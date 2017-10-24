@@ -1,0 +1,16 @@
+---
+# file   : ansible/playbooks/roles/vagrantbootstrap/tasks/main.yaml
+# purpose: bootstrapping a new vagrant server
+#
+# author : harald van der laan
+# date   : 2017-10-24
+# version: v1.0.0
+
+- name: deploy managed.fact file
+  template:
+    src: managed.fact.j2
+    dest: /etc/ansible/facts.d/managed.fact
+    owner: root
+    group: root
+    mode: 0644
+    force: true
