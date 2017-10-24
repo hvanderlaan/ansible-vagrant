@@ -22,7 +22,7 @@ for vagrant to work you need a provider, virtualbox provider is the free one so 
 # generate sshkeys if you don't have them
 ssh-keygen
 # placeing the ssh keys
-cp ~/.ssh/id_rsa.pub ansible-vagrant/vagrant/template/files/public.rsa.ket
+cp ~/.ssh/id_rsa.pub ansible-vagrant/vagrant/template/files/public.rsa.key
 vi ansible-vagrant/ansible/ansible.cfg
   # enter location of private key at the last entry
 ```
