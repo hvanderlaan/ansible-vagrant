@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: ft=ruby :
+
+# file   : Vagrantfile
+# purpose: create a new virtual with vagrant
+#
+# author : harald van der laan
+# date   : 2017/10/09
+# version: v1.0.0
+
+# create variable for inline script provisioning
+$provision = <<EOF
+sudo apt-get update
+sudo apt-get --yes install python aptitude
+EOF
+
+# default vagrant requirements
+Vagrant.require_version ">= 1.7.0"
+
+# vagrant configuration of a small ubuntu server
+Vagrant.configure(2) do |config|
+    config.vm.box = "ubuntu/xenial64"
+    config.vm.hostname = "ubuntu01.virt.brakkedoos.nl"
+    config.vm.network :private_network, ip: "172.16.20.100"
+
+    # provider settings for virtualbox
+    config.vm.provider :virtualbox do |virt|
+        virt.customize [
+            "modifyvm", :id,
+            "--cpus", 1,
+            "--memory", 512,
+            "--name", "ubuntu01",
+            "--groups", "/vagrant",
+        ]
+    end
+
+    # vagrant provisioning of the inline script
+    # required for installing python
+    config.vm.provision "shell", inline: $provision
+
+    # vagrant provisioning of the ansible playbook
+    config.vm.provision :ansible do |ansible|
+        ansible.extra_vars = { ansible_ssh_user: 'ubuntu' }
+        ansible.playbook = "bootstrap.yaml"
+    end
+end

@@ -1,0 +1,35 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+    - name: create ansible user
+      user:
+          name: ansible
+          comment: "Ansible Management user"
+          uid: 1050
+          shell: /bin/bash
+          home: /home/ansible
+          state: present
+    
+    - name: create .ssh directory
+      file:
+          path: /home/ansible/.ssh
+          state: directory
+          
+    - name: copy ansible public key
+      copy:
+          src: public.rsa.key
+          dest: /home/ansible/.ssh/authorized_keys
+          mode: 0600
+          owner: ansible
+          group: ansible
+
+    - name: granting sudo privileges to ansible
+      copy:
+          src: ansible.sudo
+          dest: /etc/sudoers.d/10-ansible
+          mode: 0440
+          owner: root
+          group: root
+          validate: /usr/sbin/visudo -cf %s
