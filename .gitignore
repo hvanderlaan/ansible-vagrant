@@ -1,10 +1,10 @@
 # vagrant ignores
-**/.vagrant
-**/*.key
-**/*.log
+vagrant/**/.vagrant
+vagrant/**/files/*.key
+vagrant/**/*.log
 
 # ansible ignores
-**/ansible.cfg
+ansible/*.cfg
 
 # vim ignores
 [._]*.s[a-v][a-z]
