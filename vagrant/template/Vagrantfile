@@ -1,46 +1,54 @@
 # -*- mode: ruby -*-
 # vi: ft=ruby :
 
-# file   : Vagrantfile
-# purpose: create a new virtual with vagrant
-#
-# author : harald van der laan
-# date   : 2017/10/09
-# version: v1.0.0
-
-# create variable for inline script provisioning
-$provision = <<EOF
+# provioning script for install ansible management deps.
+# ansible needs python and aptitude, these are not installed by default.
+$script = <<eof
 sudo apt-get update
 sudo apt-get --yes install python aptitude
-EOF
+eof
 
-# default vagrant requirements
-Vagrant.require_version ">= 1.7.0"
+# vagrant settings
+Vagrant.require_version ">= 1.9.0"
+VAGRANT_FILE_API_VERSION = "2"
 
-# vagrant configuration of a small ubuntu server
-Vagrant.configure(2) do |config|
-    config.vm.box = "ubuntu/xenial64"
-    config.vm.hostname = "ubuntu01.virt.brakkedoos.nl"
-    config.vm.network :private_network, ip: "172.16.20.100"
+# include yaml for multiple server vagrants
+require 'yaml'
 
-    # provider settings for virtualbox
-    config.vm.provider :virtualbox do |virt|
-        virt.customize [
-            "modifyvm", :id,
-            "--cpus", 1,
-            "--memory", 512,
-            "--name", "ubuntu01",
-            "--groups", "/vagrant",
-        ]
-    end
+# servers: yaml file with vagrant node information
+servers = YAML.load_file('nodes.yaml')
 
-    # vagrant provisioning of the inline script
-    # required for installing python
-    config.vm.provision "shell", inline: $provision
+# main vagrant configuration
+Vagrant.configure(VAGRANT_FILE_API_VERSION) do |config|
+    servers.each do |server|
+        config.vm.define server["name"] do |nodecfg|
+            nodecfg.vm.box = server["box"]
+            nodecfg.vm.hostname = server["hostname"]
+            nodecfg.vm.network :private_network, ip: server["ip"]
 
-    # vagrant provisioning of the ansible playbook
-    config.vm.provision :ansible do |ansible|
-        ansible.extra_vars = { ansible_ssh_user: 'ubuntu' }
-        ansible.playbook = "bootstrap.yaml"
+            # provider configuration
+            nodecfg.vm.provider :virtualbox do |virt|
+                virt.customize [
+                    "modifyvm", :id,
+                    "--groups", server["group"],
+                    "--memory", server["ram"],
+                    "--cpus", server["cpus"],
+                    "--name", server["name"],
+                    "--vrde", server["vrde"],
+                    "--vrdeport", server["vrdeport"],
+                ]
+            end
+
+            # provisioning
+            nodecfg.vm.provision "shell", inline: $script
+
+            # ansible provisioning
+            # extra_vars is required for ubuntu default user is ubuntu and not
+            # vagrant as in other images.
+            nodecfg.vm.provision :ansible do |ansible|
+                ansible.extra_vars = { ansible_ssh_user: 'ubuntu' }
+                ansible.playbook = server["playbook"]
+            end
+        end
     end
 end
