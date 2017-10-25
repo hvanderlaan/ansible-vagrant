@@ -1,0 +1,15 @@
+# vagrant ignores
+vagrant/template/.vagrant
+vagrant/template/files/public.rsa.key
+vagrant/**/*.log
+
+# ansible ignores
+ansible/ansible.cfg
+
+# vim ignores
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+Session.vim
+.netrwhist
